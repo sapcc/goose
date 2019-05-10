@@ -5,7 +5,7 @@ In addition it tries to create a non existent database automatically. The main m
 
 To compile a static binary just do:
 ```
-docker run -v (pwd):/go/src/github.com/sapcc/goose -w /go/src/github.com/sapcc/goose --rm -it golang@1.4.2 sh -c 'go get github.com/sapcc/goose/cmd/goose && CGO_ENABLED=0 go build -installsuffix=cgo -ldflags="-s -w" github.com/sapcc/goose/cmd/goose'
+docker run -v `pwd`:/go/src/github.com/sapcc/goose -w /go/src/github.com/sapcc/goose --rm -it golang sh -c 'go get github.com/sapcc/goose/cmd/goose && CGO_ENABLED=0 go build -o test -installsuffix=cgo -ldflags="-s -w" github.com/sapcc/goose/cmd/goose'
 ```
 
 # goose
