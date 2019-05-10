@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/kylelemons/go-gypsy/yaml"
 	"github.com/lib/pq"
@@ -114,6 +115,29 @@ func OpenDBFromDBConf(conf *DBConf) (*sql.DB, error) {
 	db, err := sql.Open(conf.Driver.Name, conf.Driver.OpenStr)
 	if err != nil {
 		return nil, err
+	}
+	err = db.Ping()
+	if pg_err, ok := err.(*pq.Error); ok {
+		if pg_err.Code == "3D000" {
+			fmt.Println("Database does not exist. Trying to create it.")
+			regex := regexp.MustCompile("dbname=([^ ]+)")
+			if m := regex.FindStringSubmatch(conf.Driver.OpenStr); m != nil && len(m) == 2 {
+				dbname := m[1]
+				masterConnection := regex.ReplaceAllLiteralString(conf.Driver.OpenStr, "dbname=postgres")
+				dbm, err := sql.Open(conf.Driver.Name, masterConnection)
+				if err != nil {
+					return nil, err
+				}
+				defer dbm.Close()
+				if _, err = dbm.Exec(fmt.Sprintf("CREATE DATABASE %s", dbname)); err != nil {
+					return nil, err
+				}
+				//retry to connecto to the now created database
+				db, err = sql.Open(conf.Driver.Name, conf.Driver.OpenStr)
+			} else {
+				return nil, errors.New("Can't create database with unknown name")
+			}
+		}
 	}
 
 	// if a postgres schema has been specified, apply it
