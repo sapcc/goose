@@ -1,3 +1,13 @@
+#Note:
+This fork from the official goose project has support for mysql and sqlite removed, so that it can be compiled statically (no cgo required)
+
+In addition it tries to create a non existent database automatically. The main motivation for this fork is a small static binary for automatiocally applying migrations when deploying new application versions.
+
+To compile a static binary just do:
+```
+docker run -v (pwd):/go/src/github.com/sapcc/goose -w /go/src/github.com/sapcc/goose --rm -it golang@1.4.2 sh -c 'go get github.com/sapcc/goose/cmd/goose && CGO_ENABLED=0 go build -installsuffix=cgo -ldflags="-s -w" github.com/sapcc/goose/cmd/goose'
+```
+
 # goose
 
 goose is a database migration tool.
